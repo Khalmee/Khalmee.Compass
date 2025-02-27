@@ -218,6 +218,8 @@ void function UpdateCompassRUIs()
 void function UpdateSettings()
 {
 	//TODO: Get from ConVars
+	file.style = GetConVarInt("compass_style")
+	
 	
 	//for debugging, default values
 	file.size = 24
@@ -225,7 +227,7 @@ void function UpdateSettings()
 	file.baseAlpha = 1
 	file.colour = <1,1,1>
 	file.compassWidth = 0.5
-	file.style = 0
+	//file.style = 0
 }
 
 bool function ShouldShowCompass()
@@ -352,3 +354,4 @@ string function GetBarValue(int index, float angle, float offset)
 //Issues:
 //By manipulating the line numbers and the GetBarValue function I somehow broke the layout, can't quite figure out how to place the text in the spot i want it to be
 //The problems began after adding stuff to the center RUI
+//LOOK INTO: a4_structs.c, line 929

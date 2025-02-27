@@ -1,0 +1,41 @@
+{
+	"Name": "Khalmee.Compass",
+	"Description": "Customizable compass",
+	"LoadPriority": 2,
+	"RequiredOnClient": false,
+	"Version": "0.1.0",
+	
+	"Scripts": [
+		{
+			"Path": "Compass.nut",
+			"RunOn": "CLIENT",
+			"ClientCallback": {
+				"After": "CompassInit"
+			}
+		},
+		{
+			"Path": "CompassModSettingsHookup.nut",
+			"RunOn": "UI",
+			"UICallback": {
+				"Before": "CompassModSettingsHookup"
+			}
+		}
+	],
+	"ConVars": [
+		{
+			"Name": "compass_size",
+			"DefaultValue": "12",
+			"Flags": 16777216
+		},
+		{
+			"Name": "compass_base_alpha",
+			"DefaultValue": "1",
+			"Flags": 16777216
+		},
+		{
+			"Name": "compass_position",
+			"DefaultValue": "0",
+			"Flags": 16777216
+		},
+	]
+}

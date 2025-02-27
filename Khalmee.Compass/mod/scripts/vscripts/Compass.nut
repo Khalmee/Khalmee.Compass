@@ -9,6 +9,7 @@ struct
 	float screenX
 	float screenY
 	float compassWidth
+	int style
 	vector colour
 	var[9] barRUIs
 	var centerRUI
@@ -135,33 +136,82 @@ void function UpdateCompassRUIs()
 	float offset = GetBarOffset(xAngle)
 	float barPosition
 	
-	for(int i = 0; i<9; ++i)
+	if(file.style == 0) //Style: Bars
 	{
-		//file.barRUIs[i]
+		for(int i = 0; i<9; ++i)
+		{
+			//file.barRUIs[i]
+			//Dynamic stuff
+			barPosition = GetBarPosition(i, offset)
+			RuiSetInt(file.barRUIs[i], "lineNum", 2) //might need to put this in different places
+			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
+			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
+			RuiSetString(file.barRUIs[i], "msgText", "|\n" + GetBarValue(i, xAngle, offset))
+			
+			//Settings based stuff
+			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
+			RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+		}
 		
-		//Dynamic stuff
-		barPosition = GetBarPosition(i, offset)
-		RuiSetInt(file.barRUIs[i], "lineNum", 3) //might need to put this in different places
-		RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
-		RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-		RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset))
+		//	Center RUI
+		RuiSetInt(file.centerRUI, "lineNum", 1)
+		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+	}
+	else if(file.style == 1) //Style: Minimalistic
+	{
+		for(int i = 0; i<9; ++i)
+		{
+			//file.barRUIs[i]
+			//Dynamic stuff
+			barPosition = GetBarPosition(i, offset)
+			RuiSetInt(file.barRUIs[i], "lineNum", 2) //might need to put this in different places
+			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
+			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
+			RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset))
+			
+			//Settings based stuff
+			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
+			RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+		}
 		
-		//Settings based stuff
-		RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
-		RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+		//	Center RUI
+		RuiSetInt(file.centerRUI, "lineNum", 1)
+		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+	}
+	else //Style: Number
+	{
+		for(int i = 0; i<9; ++i)
+		{
+			//file.barRUIs[i]
+			//Dynamic stuff
+			barPosition = GetBarPosition(i, offset)
+			RuiSetInt(file.barRUIs[i], "lineNum", 1) //might need to put this in different places
+			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
+			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
+			RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset) + "\n")
+			
+			//Settings based stuff
+			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
+			RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+		}
 		
-		RuiSetInt(file.barRUIs[i], "lineNum", 2)
-		RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-		
+		//	Center RUI
+		RuiSetInt(file.centerRUI, "lineNum", 1)
+		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + int(xAngle).tostring())
+		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	
-	//	Center RUI
-	//
-	// Alpha, position and size need to be updated
-	
-	RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-	RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-	RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
 	
 }
 
@@ -175,6 +225,7 @@ void function UpdateSettings()
 	file.baseAlpha = 1
 	file.colour = <1,1,1>
 	file.compassWidth = 0.5
+	file.style = 0
 }
 
 bool function ShouldShowCompass()
@@ -235,28 +286,9 @@ float function GetBarAlpha(float position)
 
 string function GetBarValue(int index, float angle, float offset)
 {
-	//Bar 4 is the one closest to the center
-	//if offset is 0, then the angle is an integer
-	//the value will be toint(angle)
-	//if not...
-	//toint(angle)%15 roughly tells us the offset <---------------------- FUCKIN DO THIS
-	//we must subtract(?) that from toint(angle)
-	//let's say the angle is 3
-	//our 0 will be to the left
-	//offset will be negative
-	//this means that toint(angle)/15 will be 0
-	//and it will be our value for bar 4
-	//
-	//let's say the angle is 14
-	//our 15 will be to the right, and it will be our Bar 4
-	//offset will be positive
-	//this means we need to add 15 to toint(angle)/15 if we believe it is rounded down
-	//simple enough
-	
-	
 	//Calculation for bar 4
 	
-	//We need to move the angle by 180
+	//We need to move the angle by 180 to face north
 	int iAngle = (int(angle) + 180)%360
 	
 	int result = 0
@@ -297,19 +329,26 @@ string function GetBarValue(int index, float angle, float offset)
 			str = "NW"
 			break
 		default:
-			str = result.tostring()
+			if(file.style == 2)
+				str = "|"
+			else
+				str = result.tostring()
 			break
 	}
 	
 	return str
 }
 
+//TODO:
+//Implement 3 styles:
+//- minimalistic (current)
+//- bars (target)
+//- number (modernized)
+// This can be done by messing with the RUI
+//Implement customizability:
+// Hook up mod settings, fix the update function
+//Clean up the comments
 
-//issues:
-//numbers changing when moving past the 0 point
-//absolutely nonsense, non-dividable numbers on the left (they are incremented/decremented by 1 mostly)
-//mirrored numbers (?)
-
-//If rui 4 is to the right of the center when pointing at 0/360, the degrees are offset by 22.5
-//If rui 4 is to the left of the center when pointing at 0/360, the degrees are offset by 22.5 in the other direction
-//AND the numbers are mirrored, starting from the smallest
+//Issues:
+//By manipulating the line numbers and the GetBarValue function I somehow broke the layout, can't quite figure out how to place the text in the spot i want it to be
+//The problems began after adding stuff to the center RUI

@@ -10,6 +10,7 @@ struct
 	float screenY
 	float compassWidth
 	int style
+	int isEnabled
 	vector colour
 	var[9] barRUIs
 	var centerRUI
@@ -217,20 +218,25 @@ void function UpdateSettings()
 {
 	//TODO: Get from ConVars
 	file.style = GetConVarInt("compass_style")
-	
+	file.size = GetConVarFloat("compass_size")
+	file.position = GetConVarFloat("compass_position") * (-0.57) //correcting for rounder numbers in settings
+	file.baseAlpha = GetConVarFloat("compass_base_alpha")
+	file.colour = GetConVarFloat3("compass_colour") / 255.0 //for RGB 0-255
+	file.compassWidth = GetConVarFloat("compass_width")
+	file.isEnabled = GetConVarInt("compass_enable")
 	
 	//for debugging, default values
-	file.size = 24
-	file.position = 0
-	file.baseAlpha = 1
-	file.colour = <1,1,1>
-	file.compassWidth = 0.5
+	//file.size = 24
+	//file.position = 0
+	//file.baseAlpha = 1
+	//file.colour = <1,1,1>
+	//file.compassWidth = 0.5
 	//file.style = 0
 }
 
 bool function ShouldShowCompass()
 {
-	if(!IsLobby() && IsValid(GetLocalViewPlayer()) && IsAlive(GetLocalViewPlayer()))
+	if(file.isEnabled && !IsLobby() && IsValid(GetLocalViewPlayer()) && IsAlive(GetLocalViewPlayer()))
 		return true
 	return false
 }
@@ -339,20 +345,33 @@ string function GetBarValue(int index, float angle, float offset)
 	return str
 }
 
+//Stolen from 4V (thanks nerd)
+vector function GetConVarFloat3(string convar)
+{
+    array<string> value = split(GetConVarString(convar), " ")
+    try{
+        return Vector(value[0].tofloat(), value[1].tofloat(), value[2].tofloat()) 
+    }
+    catch(ex){
+        throw "Invalid convar " + convar + "! make sure it is a float3 and formatted as \"X Y Z\""
+    }
+    unreachable
+}
+
 //TODO:
-//Implement 3 styles:
+//Implement 3 styles: [DONE]
 //- minimalistic (current)
 //- bars (target)
 //- number (modernized)
 // This can be done by messing with the RUI
-//Implement customizability:
+//Implement customizability: [DONE]
 // Hook up mod settings, fix the update function
 //Clean up the comments
+//Fix bugs
 
 //Issues:
-//By manipulating the line numbers and the GetBarValue function I somehow broke the layout, can't quite figure out how to place the text in the spot i want it to be
-//The problems began after adding stuff to the center RUI
-//LOOK INTO: a4_structs.c, line 929
+// Compass mirroring still present next to N (0) when N is to the left
+// Offset incorrect on lower widths, might be caused by alignment (Center, dependent on length of text)
 
 /*
 struct ruiDataStruct_cockpit_console_text_center

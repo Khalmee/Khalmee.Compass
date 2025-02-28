@@ -3,7 +3,7 @@
 	"Description": "Customizable compass",
 	"LoadPriority": 2,
 	"RequiredOnClient": false,
-	"Version": "0.4.0",
+	"Version": "0.5.0",
 	
 	"Scripts": [
 		{
@@ -24,7 +24,7 @@
 	"ConVars": [
 		{
 			"Name": "compass_size",
-			"DefaultValue": "12",
+			"DefaultValue": "24",
 			"Flags": 16777216
 		},
 		{
@@ -34,7 +34,7 @@
 		},
 		{
 			"Name": "compass_position",
-			"DefaultValue": "0",
+			"DefaultValue": "0.7",
 			"Flags": 16777216
 		},
 		{
@@ -44,7 +44,7 @@
 		},
 		{
 			"Name": "compass_colour",
-			"DefaultValue": "1 1 1",
+			"DefaultValue": "255 255 255",
 			"Flags": 16777216
 		},
 		{

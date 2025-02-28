@@ -105,7 +105,7 @@ var function CreateCompassRUI()
 	RuiSetFloat(rui, "thicken", 0.0)
 	RuiSetFloat3(rui, "msgColor", <1,1,1>)
 	//experimental
-	RuiSetString(rui, "msgAlign", "Center")
+	//RuiSetString(rui, "msgAlign", "Left") //no known possible values
 	return rui
 }
 
@@ -120,7 +120,7 @@ var function CreateCenterRUI()
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
 	RuiSetFloat3(rui, "msgColor", <1,1,1>)
-	RuiSetString(rui, "msgAlign", "Center")
+	//RuiSetString(rui, "msgAlign", "east") //no known possible values
 	return rui
 }
 
@@ -302,7 +302,9 @@ string function GetBarValue(int index, float angle, float offset)
 		result = ((iAngle - iAngle%15) + 15)
 	else
 		result = ((iAngle - iAngle%15)) 
-		
+	
+	result += 360 //correction for mirroring close to 0
+	
 	//Value for other bars:
 	result = abs(result + 15 * (index - 4)) % 360
 	
@@ -365,13 +367,13 @@ vector function GetConVarFloat3(string convar)
 //- number (modernized)
 // This can be done by messing with the RUI
 //Implement customizability: [DONE]
-// Hook up mod settings, fix the update function
+// Hook up mod settings, fix the update function [DONE]
 //Clean up the comments
 //Fix bugs
 
 //Issues:
-// Compass mirroring still present next to N (0) when N is to the left
 // Offset incorrect on lower widths, might be caused by alignment (Center, dependent on length of text)
+//A viable solution would be switching to a different RUI if changing alignment is impossible
 
 /*
 struct ruiDataStruct_cockpit_console_text_center

@@ -96,13 +96,15 @@ var function CreateCompassRUI()
 {
 	var rui = RuiCreate( $"ui/cockpit_console_text_center.rpak", clGlobal.topoCockpitHudPermanent, RUI_DRAW_COCKPIT, -1 )
 	RuiSetInt(rui, "maxLines", 3)
-	RuiSetInt(rui, "lineNum", 2)
+	RuiSetInt(rui, "lineNum", 1)
 	RuiSetFloat2(rui, "msgPos", <0,0,0>)
 	RuiSetString(rui, "msgText", "|")
 	RuiSetFloat(rui, "msgFontSize", file.size)
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
 	RuiSetFloat3(rui, "msgColor", <1,1,1>)
+	//experimental
+	RuiSetString(rui, "msgAlign", "Center")
 	return rui
 }
 
@@ -112,11 +114,12 @@ var function CreateCenterRUI()
 	RuiSetInt(rui, "maxLines", 3)
 	RuiSetInt(rui, "lineNum", 1)
 	RuiSetFloat2(rui, "msgPos", <0,0,0>)
-	RuiSetString(rui, "msgText", "\\/")
+	RuiSetString(rui, "msgText", "\\/\n\n")
 	RuiSetFloat(rui, "msgFontSize", file.size)
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
 	RuiSetFloat3(rui, "msgColor", <1,1,1>)
+	RuiSetString(rui, "msgAlign", "Center")
 	return rui
 }
 
@@ -136,6 +139,44 @@ void function UpdateCompassRUIs()
 	float offset = GetBarOffset(xAngle)
 	float barPosition
 	
+	
+	for(int i = 0; i<9; ++i)
+	{
+		//file.barRUIs[i]
+
+		//Dynamic stuff
+		barPosition = GetBarPosition(i, offset)
+		//RuiSetInt(file.barRUIs[i], "lineNum", 3) //might need to put this in different places
+		RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
+		RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
+		//RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset))
+		RuiSetString(file.barRUIs[i], "msgText", "\n|\n" + GetBarValue(i, xAngle, offset))
+
+		//Settings based stuff
+		RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
+		RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+
+		//RuiSetInt(file.barRUIs[i], "lineNum", 2)
+		//RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
+
+	}
+
+	//	Center RUI
+	//
+	// Alpha, position and size need to be updated
+
+	RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+	RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+	RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+	RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+	//RuiSetInt(file.centerRUI, "currentLineNum", 1)
+	//RuiSetString(file.centerRUI, "msgText", "\\/")
+	//RuiSetInt(file.centerRUI, "currentLineNum", 3)
+	//RuiSetString(file.centerRUI, "msgText", int(xAngle).tostring())
+	//RuiSetInt(file.centerRUI, "currentLineNum", 1)
+	//RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + int(xAngle).tostring())
+	
+	/*
 	if(file.style == 0) //Style: Bars
 	{
 		for(int i = 0; i<9; ++i)
@@ -154,12 +195,12 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		RuiSetInt(file.centerRUI, "lineNum", 1)
-		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
-		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		//RuiSetInt(file.centerRUI, "lineNum", 1)
+		//RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		//RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		//RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		//RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		//RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	else if(file.style == 1) //Style: Minimalistic
 	{
@@ -179,12 +220,12 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		RuiSetInt(file.centerRUI, "lineNum", 1)
-		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
-		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		//RuiSetInt(file.centerRUI, "lineNum", 1)
+		//RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		//RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		//RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		//RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		//RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	else //Style: Number
 	{
@@ -204,14 +245,14 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		RuiSetInt(file.centerRUI, "lineNum", 1)
-		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + int(xAngle).tostring())
-		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		//RuiSetInt(file.centerRUI, "lineNum", 1)
+		//RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		//RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + int(xAngle).tostring())
+		//RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		//RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		//RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
-	
+	*/
 	
 }
 
@@ -355,3 +396,26 @@ string function GetBarValue(int index, float angle, float offset)
 //By manipulating the line numbers and the GetBarValue function I somehow broke the layout, can't quite figure out how to place the text in the spot i want it to be
 //The problems began after adding stuff to the center RUI
 //LOOK INTO: a4_structs.c, line 929
+
+/*
+struct ruiDataStruct_cockpit_console_text_center
+{
+  BYTE gap_0[24];
+  float msgColor[3];
+  float msgFontSize;
+  float thicken;
+  float msgPos[2];
+  float msgAlpha;
+  char* msgText;
+  char* msgText2;
+  char* msgAlign;
+  int lineNum;
+  int maxLines;
+  float lineHoldtime;
+  int autoMove;
+  int initialized;
+  int currentLineNum;
+  float startTime;
+  BYTE gap_6c[28];
+};
+*/

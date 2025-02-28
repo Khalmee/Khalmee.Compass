@@ -140,43 +140,6 @@ void function UpdateCompassRUIs()
 	float barPosition
 	
 	
-	for(int i = 0; i<9; ++i)
-	{
-		//file.barRUIs[i]
-
-		//Dynamic stuff
-		barPosition = GetBarPosition(i, offset)
-		//RuiSetInt(file.barRUIs[i], "lineNum", 3) //might need to put this in different places
-		RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
-		RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-		//RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset))
-		RuiSetString(file.barRUIs[i], "msgText", "\n|\n" + GetBarValue(i, xAngle, offset))
-
-		//Settings based stuff
-		RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
-		RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
-
-		//RuiSetInt(file.barRUIs[i], "lineNum", 2)
-		//RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-
-	}
-
-	//	Center RUI
-	//
-	// Alpha, position and size need to be updated
-
-	RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-	RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-	RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-	RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
-	//RuiSetInt(file.centerRUI, "currentLineNum", 1)
-	//RuiSetString(file.centerRUI, "msgText", "\\/")
-	//RuiSetInt(file.centerRUI, "currentLineNum", 3)
-	//RuiSetString(file.centerRUI, "msgText", int(xAngle).tostring())
-	//RuiSetInt(file.centerRUI, "currentLineNum", 1)
-	//RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + int(xAngle).tostring())
-	
-	/*
 	if(file.style == 0) //Style: Bars
 	{
 		for(int i = 0; i<9; ++i)
@@ -184,10 +147,9 @@ void function UpdateCompassRUIs()
 			//file.barRUIs[i]
 			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
-			RuiSetInt(file.barRUIs[i], "lineNum", 2) //might need to put this in different places
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
 			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "|\n" + GetBarValue(i, xAngle, offset))
+			RuiSetString(file.barRUIs[i], "msgText", "\n|\n" + GetBarValue(i, xAngle, offset))
 			
 			//Settings based stuff
 			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
@@ -195,12 +157,11 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		//RuiSetInt(file.centerRUI, "lineNum", 1)
-		//RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
-		//RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		//RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-		//RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-		//RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	else if(file.style == 1) //Style: Minimalistic
 	{
@@ -209,10 +170,9 @@ void function UpdateCompassRUIs()
 			//file.barRUIs[i]
 			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
-			RuiSetInt(file.barRUIs[i], "lineNum", 2) //might need to put this in different places
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
 			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset))
+			RuiSetString(file.barRUIs[i], "msgText", "\n" + GetBarValue(i, xAngle, offset) + "\n")
 			
 			//Settings based stuff
 			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
@@ -220,12 +180,11 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		//RuiSetInt(file.centerRUI, "lineNum", 1)
-		//RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
-		//RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		//RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-		//RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-		//RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	else //Style: Number
 	{
@@ -234,10 +193,9 @@ void function UpdateCompassRUIs()
 			//file.barRUIs[i]
 			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
-			RuiSetInt(file.barRUIs[i], "lineNum", 1) //might need to put this in different places
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
 			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", GetBarValue(i, xAngle, offset) + "\n")
+			RuiSetString(file.barRUIs[i], "msgText", "\n" + GetBarValue(i, xAngle, offset) + "\n")
 			
 			//Settings based stuff
 			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
@@ -245,14 +203,13 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		//RuiSetInt(file.centerRUI, "lineNum", 1)
-		//RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		//RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + int(xAngle).tostring())
-		//RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
-		//RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-		//RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
+		RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + ((int(xAngle) + 180)%360).tostring()) //optimize this maybe, correction here seems redundant
+		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
+		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
+		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
-	*/
+	
 	
 }
 

@@ -99,7 +99,7 @@ var function CreateCompassRUI()
 	RuiSetInt(rui, "maxLines", 3)
 	RuiSetInt(rui, "lineNum", 1)
 	RuiSetFloat2(rui, "msgPos", <0,0,0>)
-	RuiSetString(rui, "msgText", "|")
+	RuiSetString(rui, "msgText", " | ")
 	RuiSetFloat(rui, "msgFontSize", file.size)
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
@@ -115,7 +115,7 @@ var function CreateCenterRUI()
 	RuiSetInt(rui, "maxLines", 3)
 	RuiSetInt(rui, "lineNum", 1)
 	RuiSetFloat2(rui, "msgPos", <0,0,0>)
-	RuiSetString(rui, "msgText", "\\/\n\n")
+	RuiSetString(rui, "msgText", "\\|/\n   \n   ")
 	RuiSetFloat(rui, "msgFontSize", file.size)
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
@@ -150,7 +150,7 @@ void function UpdateCompassRUIs()
 			barPosition = GetBarPosition(i, offset)
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
 			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "\n|\n" + GetBarValue(i, xAngle, offset))
+			RuiSetString(file.barRUIs[i], "msgText", "   \n | \n" + GetBarValue(i, xAngle, offset))
 			
 			//Settings based stuff
 			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
@@ -158,7 +158,7 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n   ")
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
@@ -173,7 +173,7 @@ void function UpdateCompassRUIs()
 			barPosition = GetBarPosition(i, offset)
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
 			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "\n" + GetBarValue(i, xAngle, offset) + "\n")
+			RuiSetString(file.barRUIs[i], "msgText", "   \n" + GetBarValue(i, xAngle, offset) + "\n   ")
 			
 			//Settings based stuff
 			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
@@ -181,7 +181,7 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		RuiSetString(file.centerRUI, "msgText", "\\/\n\n")
+		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n   ")
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
@@ -196,7 +196,7 @@ void function UpdateCompassRUIs()
 			barPosition = GetBarPosition(i, offset)
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
 			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "\n" + GetBarValue(i, xAngle, offset) + "\n")
+			RuiSetString(file.barRUIs[i], "msgText", "   \n" + GetBarValue(i, xAngle, offset) + "\n   ")
 			
 			//Settings based stuff
 			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
@@ -204,14 +204,16 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
+		int angleNumber = (int(xAngle) + 180)%360 //optimize this maybe, correction here seems redundant
+		
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		RuiSetString(file.centerRUI, "msgText", "\\/\n\n" + ((int(xAngle) + 180)%360).tostring()) //optimize this maybe, correction here seems redundant
+		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n" + (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring()))
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
 		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	
-	
+	// (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring())
 }
 
 void function UpdateSettings()
@@ -313,34 +315,36 @@ string function GetBarValue(int index, float angle, float offset)
 	switch (result)
 	{
 		case 0:
-			str = "N"
+			str = " N "
 			break
 		case 45:
-			str = "NE"
+			str = "NE "
 			break
 		case 90:
-			str = "E"
+			str = " E "
 			break
 		case 135:
-			str = "SE"
+			str = "SE "
 			break
 		case 180:
-			str = "S"
+			str = " S "
 			break
 		case 225:
-			str = "SW"
+			str = "SW "
 			break
 		case 270:
-			str = "W"
+			str = " W "
 			break
 		case 315:
-			str = "NW"
+			str = "NW "
 			break
 		default:
 			if(file.style == 2)
-				str = "|"
+				str = " | "
 			else
 				str = result.tostring()
+				if(str.len() < 3)
+					str = str.len() == 1 ? " " + str + " " : str + " "
 			break
 	}
 	
@@ -369,11 +373,8 @@ vector function GetConVarFloat3(string convar)
 //Implement customizability: [DONE]
 // Hook up mod settings, fix the update function [DONE]
 //Clean up the comments
-//Fix bugs
+//Fix bugs [Known ones fixed]
 
-//Issues:
-// Offset incorrect on lower widths, might be caused by alignment (Center, dependent on length of text)
-//A viable solution would be switching to a different RUI if changing alignment is impossible
 
 /*
 struct ruiDataStruct_cockpit_console_text_center

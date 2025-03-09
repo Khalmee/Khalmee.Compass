@@ -3,7 +3,7 @@
 	"Description": "Customizable compass",
 	"LoadPriority": 2,
 	"RequiredOnClient": false,
-	"Version": "0.5.1",
+	"Version": "0.6.0",
 	
 	"Scripts": [
 		{

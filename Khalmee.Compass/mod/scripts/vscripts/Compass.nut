@@ -6,8 +6,6 @@ struct
 	float size
 	float position
 	float baseAlpha
-	float screenX
-	float screenY
 	float compassWidth
 	int style
 	int isEnabled
@@ -19,11 +17,13 @@ struct
 
 void function CompassInit()
 {
-	RegisterButtonPressedCallback(MOUSE_LEFT, aaa)
-	thread CompassThread()
+	//RegisterButtonPressedCallback(MOUSE_LEFT, aaa) //Callback for debugging
+	if( !IsLobby() )
+		thread CompassThread()
 }
 
-void function aaa(var button)
+/*
+void function aaa(var button) //Debug function, disregard
 {
 	if(IsValid(GetLocalViewPlayer()))
 	{
@@ -50,11 +50,10 @@ void function aaa(var button)
 		Logger.Info("------------")
 	}
 }
+*/
 
 void function CompassThread()
 {
-	file.screenX = GetScreenSize()[0]
-	file.screenY = GetScreenSize()[1]
 	UpdateSettings()
 	
 	for(int i = 0; i < 9; ++i)
@@ -76,13 +75,6 @@ void function CompassThread()
 		{
 			UpdateCompassRUIs()
 			file.isVisible = true
-			/*
-			if(!file.isVisible) //might be redundant, TODO: check this afterwards
-			{
-				ShowCompass()
-				file.isVisible = true
-			}
-			*/
 		}
 		else if (file.isVisible)
 		{
@@ -104,8 +96,6 @@ var function CreateCompassRUI()
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
 	RuiSetFloat3(rui, "msgColor", <1,1,1>)
-	//experimental
-	//RuiSetString(rui, "msgAlign", "Left") //no known possible values
 	return rui
 }
 
@@ -120,22 +110,11 @@ var function CreateCenterRUI()
 	RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
 	RuiSetFloat(rui, "thicken", 0.0)
 	RuiSetFloat3(rui, "msgColor", <1,1,1>)
-	//RuiSetString(rui, "msgAlign", "east") //no known possible values
 	return rui
 }
 
 void function UpdateCompassRUIs()
 {
-	//	Bar RUIs
-	//
-	// Each bar has an assigned position within a certain range
-	// There are 9 bars in total
-	// Bars closer to the edge get less visible
-	// Each RUI has 3 lines
-	// Line 1 serves as an offset for the center marker
-	// Line 2 contains the bar
-	// Line 3 contains a number (1 - 360, with the offset of 15) or the directional symbol: N, NE, E, etc.
-	
 	float xAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1) //View angle in degrees (range -180 to 180 by default, correcting)
 	float offset = GetBarOffset(xAngle)
 	float barPosition
@@ -145,7 +124,6 @@ void function UpdateCompassRUIs()
 	{
 		for(int i = 0; i<9; ++i)
 		{
-			//file.barRUIs[i]
 			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
@@ -168,7 +146,6 @@ void function UpdateCompassRUIs()
 	{
 		for(int i = 0; i<9; ++i)
 		{
-			//file.barRUIs[i]
 			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
@@ -191,7 +168,6 @@ void function UpdateCompassRUIs()
 	{
 		for(int i = 0; i<9; ++i)
 		{
-			//file.barRUIs[i]
 			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
 			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
@@ -204,7 +180,7 @@ void function UpdateCompassRUIs()
 		}
 		
 		//	Center RUI
-		int angleNumber = (int(xAngle) + 180)%360 //optimize this maybe, correction here seems redundant
+		int angleNumber = (int(xAngle) + 180)%360 //could be optimized out, don't wanna bother rn so TODO
 		
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
 		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n" + (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring()))
@@ -213,12 +189,10 @@ void function UpdateCompassRUIs()
 		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
 	}
 	
-	// (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring())
 }
 
 void function UpdateSettings()
 {
-	//TODO: Get from ConVars
 	file.style = GetConVarInt("compass_style")
 	file.size = GetConVarFloat("compass_size")
 	file.position = GetConVarFloat("compass_position") * (-0.57) //correcting for rounder numbers in settings
@@ -226,31 +200,15 @@ void function UpdateSettings()
 	file.colour = GetConVarFloat3("compass_colour") / 255.0 //for RGB 0-255
 	file.compassWidth = GetConVarFloat("compass_width")
 	file.isEnabled = GetConVarInt("compass_enable")
-	
-	//for debugging, default values
-	//file.size = 24
-	//file.position = 0
-	//file.baseAlpha = 1
-	//file.colour = <1,1,1>
-	//file.compassWidth = 0.5
-	//file.style = 0
 }
 
 bool function ShouldShowCompass()
 {
-	if(file.isEnabled && !IsLobby() && IsValid(GetLocalViewPlayer()) && IsAlive(GetLocalViewPlayer()))
+	if(file.isEnabled && IsValid(GetLocalViewPlayer()) && IsAlive(GetLocalViewPlayer()))
 		return true
 	return false
 }
 
-void function ShowCompass()
-{
-	foreach(rui in file.barRUIs){
-		RuiSetFloat(rui, "msgAlpha", file.baseAlpha)
-	}
-	
-	RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
-}
 
 void function HideCompass()
 {
@@ -271,19 +229,17 @@ float function GetBarOffset(float angle)
 	
 	float offset = 0
 	
+	//I forgot what happens here, I'm just glad it works
 	if (temp < 0)
 		offset = ((1 - fabs(temp)) * (file.compassWidth/18)) * (-1.0)
 	else
 		offset = (1 - temp) * (file.compassWidth/18)
 	
 	return offset
-	//for x in range of -1 to 1, where the lowest result should be... 
 }
 
-float function GetBarPosition(int index, float offset) //needs fixing, angle is not included in the calculations
+float function GetBarPosition(int index, float offset)
 {
-	//this looks correct, but incomplete:
-	//(index * file.compassWidth/9 + file.compassWidth/18 + offset) - file.compassWidth/2
 	return (index * file.compassWidth/9 + file.compassWidth/18 + offset) - file.compassWidth/2
 }
 
@@ -296,7 +252,7 @@ string function GetBarValue(int index, float angle, float offset)
 {
 	//Calculation for bar 4
 	
-	//We need to move the angle by 180 to face north
+	//We need to move the angle by 180 to face north (could be optimized by moving to the Update function, would require changes to passed args)
 	int iAngle = (int(angle) + 180)%360
 	
 	int result = 0
@@ -305,7 +261,7 @@ string function GetBarValue(int index, float angle, float offset)
 	else
 		result = ((iAngle - iAngle%15)) 
 	
-	result += 360 //correction for mirroring close to 0
+	result += 360 //Correction for mirroring close to 0
 	
 	//Value for other bars:
 	result = abs(result + 15 * (index - 4)) % 360
@@ -363,38 +319,3 @@ vector function GetConVarFloat3(string convar)
     }
     unreachable
 }
-
-//TODO:
-//Implement 3 styles: [DONE]
-//- minimalistic (current)
-//- bars (target)
-//- number (modernized)
-// This can be done by messing with the RUI
-//Implement customizability: [DONE]
-// Hook up mod settings, fix the update function [DONE]
-//Clean up the comments
-//Fix bugs [Known ones fixed]
-
-
-/*
-struct ruiDataStruct_cockpit_console_text_center
-{
-  BYTE gap_0[24];
-  float msgColor[3];
-  float msgFontSize;
-  float thicken;
-  float msgPos[2];
-  float msgAlpha;
-  char* msgText;
-  char* msgText2;
-  char* msgAlign;
-  int lineNum;
-  int maxLines;
-  float lineHoldtime;
-  int autoMove;
-  int initialized;
-  int currentLineNum;
-  float startTime;
-  BYTE gap_6c[28];
-};
-*/

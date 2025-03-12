@@ -1,5 +1,7 @@
 untyped
 global function CompassInit
+global function CreateCustomCompassTracker
+global function CreateCustomCompassWaypoint
 
 struct
 {
@@ -159,6 +161,7 @@ void function UpdateCompassRUIs()
 		
 		//	Center RUI
 		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n   ")
+		//RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n%$r2_ui/menus/loadout_icons/primary_weapon/primary_softball%") //experimental, works
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
@@ -320,6 +323,61 @@ vector function GetConVarFloat3(string convar)
     unreachable
 }
 
+
+//Functions for creating custom compass markers
+void function CreateCustomCompassTracker( entity target, string imagePath, float imageScaleModifier, int compassRow )
+{
+	
+}
+
+
+void function CreateCustomCompassWaypoint( vector position, string imagePath, float imageScaleModifier, int compassRow )
+{
+	
+}
+
+
+//Remember to add these newly created ruis to an array, which we will use to hide them with the HideCompass function, or use ShouldShowCompass
+
+
+//Funcs for maintaining the RUIs, they run as threads and update/delete them
+void function MaintainCustomCompassTracker( entity target, var rui )
+{
+	
+}
+
+
+void function MaintainCustomCompassWaypoint( var rui )
+{
+	
+}
+
+
+float function GetImagePosition(float angle)
+{
+	//Pasted previous code, needs adjustments for images
+	float angleReduced = angle - ((int(angle)/15) * 15)
+	
+	float temp = ((angleReduced - 7.5) / 7.5) //the result here is a value from -1 to 1
+	
+	float offset = 0
+	
+	//I forgot what happens here, I'm just glad it works
+	if (temp < 0)
+		offset = ((1 - fabs(temp)) * (file.compassWidth/18)) * (-1.0)
+	else
+		offset = (1 - temp) * (file.compassWidth/18)
+	
+	return offset
+}
+
+float function GetImageAlpha(float position)
+{
+	//Pasted previous code, needs adjustments for images
+	return file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
+}
+
+
 //Idea:
 //Create a function that creates an icon on the compass for any entity, using an image the path to which is passed as an arg
 //it could return the RUI var, but that might cause issues, we'll see
@@ -337,3 +395,12 @@ vector function GetConVarFloat3(string convar)
 //
 //All of that would allow the compass to be used as a dependency, and people could track any objects on it, such as batteries and teammates
 //Patches could be used as generic images as they already look like map markers
+//
+//overhead_icon_generic has image scaling, would be viable here,but it doesn't have alpha
+//basic_image doesn't have scale and position for some reason
+//fw_base_marker has everything, but might be overkill, and idk if pos refers to world pos or screen pos
+//loadout_image_large and loadout_image_medium exist, but do not have position
+//could attempt with text center or announcement and just give it the image path as string, worked in serverside announcements
+//need to find the discord discussion where that was done, i participated in it and suggested softball as an icon
+//found it
+//NSSendAnnouncementMessageToPlayer(player, "%%$r2_ui/menus/loadout_icons/primary_weapon/primary_softball%%", "deez nuts", <255, 0, 0>, 1, 0);

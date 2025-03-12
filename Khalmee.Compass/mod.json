@@ -3,7 +3,7 @@
 	"Description": "Customizable compass",
 	"LoadPriority": 2,
 	"RequiredOnClient": false,
-	"Version": "0.6.1",
+	"Version": "1.0.0",
 	
 	"Scripts": [
 		{
@@ -34,7 +34,7 @@
 		},
 		{
 			"Name": "compass_position",
-			"DefaultValue": "0.7",
+			"DefaultValue": "0.78",
 			"Flags": 16777216
 		},
 		{

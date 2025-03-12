@@ -319,3 +319,21 @@ vector function GetConVarFloat3(string convar)
     }
     unreachable
 }
+
+//Idea:
+//Create a function that creates an icon on the compass for any entity, using an image the path to which is passed as an arg
+//it could return the RUI var, but that might cause issues, we'll see
+//void function CreateCustomCompassMarker(entity target, string imagePath, float imageScale)
+//
+//Register a new signal for the entity, so that the marker can be manually removed (put it in the init of this mod)
+//RegisterSignal( "DestroyMarker" )
+//
+//New functions for calculating position and alpha
+//RUI gets created in the function, and then is maintained in a newly created thread
+//The thread should end based on any of the 2 Signals: "OnDestroy" or "DestroyMarker"
+//OnThreadEnd delete the RUI
+//
+//If target goes outside compass range, ignore position and set visibility/alpha to 0
+//
+//All of that would allow the compass to be used as a dependency, and people could track any objects on it, such as batteries and teammates
+//Patches could be used as generic images as they already look like map markers

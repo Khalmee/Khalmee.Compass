@@ -21,7 +21,12 @@ void function CompassInit()
 {
 	//RegisterButtonPressedCallback(MOUSE_LEFT, aaa) //Callback for debugging
 	if( !IsLobby() )
+	{
+		RegisterSignal( "DestroyTracker" )
+		RegisterSignal( "DestroyWaypoints" )
 		thread CompassThread()
+		//Register the custom signals, for trackers and for waypoints
+	}
 }
 
 /*
@@ -323,11 +328,33 @@ vector function GetConVarFloat3(string convar)
     unreachable
 }
 
+//==================================================================================================================
 
 //Functions for creating custom compass markers
-void function CreateCustomCompassTracker( entity target, string imagePath, float imageScaleModifier, int compassRow )
+void function CreateCustomCompassTracker( entity target, string imagePath, float imageScaleModifier, vector colour, int compassRow )
 {
 	
+	
+	var rui = CreateCompassRUI()
+	string ruiString = ""
+	
+	switch( compassRow )
+	{
+		case 1:
+			ruiString = "%" + imagePath + "%\n\n"
+			break
+		case 2:
+			ruiString = "\n%" + imagePath + "%\n"
+			break
+		default:
+			ruiString = "\n\n%" + imagePath + "%"
+			break
+	}
+	
+	RuiSetString(rui, "msgText", ruiString )
+	RuiSetFloat3(rui, "msgColor", colour )
+	
+	thread MaintainCustomCompassTracker( target, rui, imageScaleModifier )
 }
 
 
@@ -335,14 +362,53 @@ void function CreateCustomCompassWaypoint( vector position, string imagePath, fl
 {
 	
 }
-
-
 //Remember to add these newly created ruis to an array, which we will use to hide them with the HideCompass function, or use ShouldShowCompass
+//Might turn out to not be necessary
 
 
 //Funcs for maintaining the RUIs, they run as threads and update/delete them
-void function MaintainCustomCompassTracker( entity target, var rui )
+void function MaintainCustomCompassTracker( entity target, var rui, float imageScaleModifier ) //add more args
 {
+	target.EndSignal( "OnDestroy" )
+	target.EndSignal( "OnDeath" )
+	target.EndSignal( "DestroyTracker" )
+	
+	vector vec
+	vector newAngles
+	float angle
+	float imagePosition
+	bool isVisible = true
+	
+	while(true)
+	{
+		WaitFrame()
+		
+		vec =  target.GetOrigin() - GetLocalClientPlayer().GetOrigin()
+		newAngles = VectorToAngles( vec )
+		//Logger.Info((360.0 - newAngles.y).tostring()) //Y is our argument
+		//East and west are swapped
+		//The rotation is in the opposite direction
+		//adding 360.0 - fixed it
+		angle = 360.0 - newAngles.y
+		
+		imagePosition = GetImagePosition( angle )
+		
+		RuiSetFloat2(rui, "msgPos", < imagePosition, file.position, 0 > )
+		RuiSetFloat(rui, "msgAlpha", GetImageAlpha( imagePosition ) )
+		RuiSetFloat(rui, "msgFontSize", file.size * imageScaleModifier )
+
+	}
+	
+	OnThreadEnd(
+		function() : ( rui )
+		{
+			Logger.Info("Thread ended!")
+			if(rui != null)
+			{
+				RuiDestroyIfAlive(rui)
+			}
+		}
+	)
 	
 }
 
@@ -350,23 +416,32 @@ void function MaintainCustomCompassTracker( entity target, var rui )
 void function MaintainCustomCompassWaypoint( var rui )
 {
 	
+	//Could handle the destruction of custom waypoints by using a signal on LocalClientPlayer, that way we don't need a new global func
 }
 
 
+//THIS FUNCTION NEEDS A COMPLETE REWORK
 float function GetImagePosition(float angle)
 {
-	//Pasted previous code, needs adjustments for images
-	float angleReduced = angle - ((int(angle)/15) * 15)
+	//float xAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1)
+	//Issue: currently the angle does not include the view angle, come up with a way to include it
+	//float a = angle - xAngle 
 	
-	float temp = ((angleReduced - 7.5) / 7.5) //the result here is a value from -1 to 1
+	//Pasted previous code, needs adjustments for images
+	//Instead of 15 degrees, it will be the whole range
+	//So the number must be increased by 4 or 5 times
+	float angleReduced = a - ((int(a)/60) * 60)
+	
+	//This must be divided by half of that increased number
+	float temp = ((angleReduced - 30) / 30) //the result here is a value from -1 to 1
 	
 	float offset = 0
 	
-	//I forgot what happens here, I'm just glad it works
+	//need to change the 18 to 2 i think
 	if (temp < 0)
-		offset = ((1 - fabs(temp)) * (file.compassWidth/18)) * (-1.0)
+		offset = ((1 - fabs(temp)) * (file.compassWidth/2)) * (-1.0)
 	else
-		offset = (1 - temp) * (file.compassWidth/18)
+		offset = (1 - temp) * (file.compassWidth/2)
 	
 	return offset
 }
@@ -374,6 +449,7 @@ float function GetImagePosition(float angle)
 float function GetImageAlpha(float position)
 {
 	//Pasted previous code, needs adjustments for images
+	//Actually might be fine
 	return file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
 }
 
@@ -404,3 +480,13 @@ float function GetImageAlpha(float position)
 //need to find the discord discussion where that was done, i participated in it and suggested softball as an icon
 //found it
 //NSSendAnnouncementMessageToPlayer(player, "%%$r2_ui/menus/loadout_icons/primary_weapon/primary_softball%%", "deez nuts", <255, 0, 0>, 1, 0);
+
+
+//TODO:
+//Add an empty style, with no bars or numbers, for just custom markers
+//Add a variant of the number style without bars
+//Add colour to passed args in CreateCustomCompassTracker [DONE]
+
+//Issues:
+//The GetImagePosition function does not include eye angles. Do the math.
+//Signals don't get through, might be because of whiletrue and not for;;

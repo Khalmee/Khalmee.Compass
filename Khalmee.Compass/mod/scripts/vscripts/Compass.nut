@@ -370,7 +370,7 @@ void function CreateCustomCompassWaypoint( vector position, string imagePath, fl
 void function MaintainCustomCompassTracker( entity target, var rui, float imageScaleModifier ) //add more args
 {
 	target.EndSignal( "OnDestroy" )
-	target.EndSignal( "OnDeath" )
+	//target.EndSignal( "OnDeath" )
 	target.EndSignal( "DestroyTracker" )
 	
 	vector vec
@@ -379,7 +379,19 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 	float imagePosition
 	bool isVisible = true
 	
-	while(true)
+	
+	OnThreadEnd(
+		function() : ( rui )
+		{
+			Logger.Info("Thread ended!")
+			if(rui != null)
+			{
+				RuiDestroyIfAlive(rui)
+			}
+		}
+	)
+	
+	for(;;)
 	{
 		WaitFrame()
 		
@@ -396,19 +408,7 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 		RuiSetFloat2(rui, "msgPos", < imagePosition, file.position, 0 > )
 		RuiSetFloat(rui, "msgAlpha", GetImageAlpha( imagePosition ) )
 		RuiSetFloat(rui, "msgFontSize", file.size * imageScaleModifier )
-
 	}
-	
-	OnThreadEnd(
-		function() : ( rui )
-		{
-			Logger.Info("Thread ended!")
-			if(rui != null)
-			{
-				RuiDestroyIfAlive(rui)
-			}
-		}
-	)
 	
 }
 
@@ -426,24 +426,22 @@ float function GetImagePosition(float angle)
 	//float xAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1)
 	//Issue: currently the angle does not include the view angle, come up with a way to include it
 	//float a = angle - xAngle 
+	//fabs(xAngle - angle) //think that through
+	//The rest might be useless with this method
 	
-	//Pasted previous code, needs adjustments for images
-	//Instead of 15 degrees, it will be the whole range
-	//So the number must be increased by 4 or 5 times
-	float angleReduced = a - ((int(a)/60) * 60)
+	float eyeAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1)
+	float x = angle - eyeAngle
 	
-	//This must be divided by half of that increased number
-	float temp = ((angleReduced - 30) / 30) //the result here is a value from -1 to 1
+	float uDiff = min( fabs(x), fabs( fabs(x) - 360.0 ) ) //not sure about this
 	
-	float offset = 0
+	float diff = x < 0 ? uDiff * (-1.0) : uDiff
 	
-	//need to change the 18 to 2 i think
-	if (temp < 0)
-		offset = ((1 - fabs(temp)) * (file.compassWidth/2)) * (-1.0)
-	else
-		offset = (1 - temp) * (file.compassWidth/2)
+	//135 degrees visible
+	//67.5 on each side
+	//our deviation is signed, so use 67.5 for division
+	//use file.width too, half of that to be exact
 	
-	return offset
+	return (diff / 67.5) * (file.compassWidth / 2) //hopefully works
 }
 
 float function GetImageAlpha(float position)
@@ -451,6 +449,12 @@ float function GetImageAlpha(float position)
 	//Pasted previous code, needs adjustments for images
 	//Actually might be fine
 	return file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
+}
+
+
+float function fmod( float x, float y ) //the fuck
+{
+	return x - y * int(x / y)
 }
 
 
@@ -488,5 +492,5 @@ float function GetImageAlpha(float position)
 //Add colour to passed args in CreateCustomCompassTracker [DONE]
 
 //Issues:
-//The GetImagePosition function does not include eye angles. Do the math.
-//Signals don't get through, might be because of whiletrue and not for;;
+//The GetImagePosition function does not include eye angles. Do the math. [NEARLY DONE] The thing is flipped, do 1 - x
+//Signals don't get through, might be because of whiletrue and not for;; [FIXED] the problem was the loop being before the OnThreadEnd

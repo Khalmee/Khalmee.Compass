@@ -333,8 +333,6 @@ vector function GetConVarFloat3(string convar)
 //Functions for creating custom compass markers
 void function CreateCustomCompassTracker( entity target, string imagePath, float imageScaleModifier, vector colour, int compassRow )
 {
-	
-	
 	var rui = CreateCompassRUI()
 	string ruiString = ""
 	
@@ -358,9 +356,28 @@ void function CreateCustomCompassTracker( entity target, string imagePath, float
 }
 
 
-void function CreateCustomCompassWaypoint( vector position, string imagePath, float imageScaleModifier, int compassRow )
+void function CreateCustomCompassWaypoint( vector position, string imagePath, float imageScaleModifier, vector colour, int compassRow )
 {
+	var rui = CreateCompassRUI()
+	string ruiString = ""
 	
+	switch( compassRow )
+	{
+		case 1:
+			ruiString = "%" + imagePath + "%\n\n"
+			break
+		case 2:
+			ruiString = "\n%" + imagePath + "%\n"
+			break
+		default:
+			ruiString = "\n\n%" + imagePath + "%"
+			break
+	}
+	
+	RuiSetString(rui, "msgText", ruiString )
+	RuiSetFloat3(rui, "msgColor", colour )
+	
+	thread MaintainCustomCompassWaypoint( position, rui, imageScaleModifier )
 }
 //Remember to add these newly created ruis to an array, which we will use to hide them with the HideCompass function, or use ShouldShowCompass
 //Might turn out to not be necessary
@@ -381,8 +398,7 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 	
 	
 	//DEBUG
-
-	thread kys(target)
+	//thread kys(target)
 	//DEBUG END
 	
 	
@@ -418,51 +434,54 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 	
 }
 
-void function kys(entity target) //debug thread aaaaa
+
+
+
+
+void function MaintainCustomCompassWaypoint( vector position, var rui, float imageScaleModifier )
 {
-	target.EndSignal( "OnDestroy" )
-	//target.EndSignal( "OnDeath" )
-	target.EndSignal( "DestroyTracker" )
+	GetLocalClientPlayer().EndSignal( "DestroyWaypoints" )
+	
+	vector vec
+	vector newAngles
+	float angle
+	float imagePosition
+	bool isVisible = true
+	
+	OnThreadEnd(
+		function() : ( rui )
+		{
+			Logger.Info("Thread ended!")
+			if(rui != null)
+			{
+				RuiDestroyIfAlive(rui)
+			}
+		}
+	)
 	
 	for(;;)
 	{
-		wait 3
-		Logger.Info("============")
-		Logger.Info("EYE: " + (fmod(((GetLocalViewPlayer().EyeAngles().y - 180) * (-1.0)) + 180.0, 360.0)).tostring())
-		//Eye func is wrong
-		vector newAngles = VectorToAngles(target.GetOrigin() - GetLocalClientPlayer().GetOrigin())
-		Logger.Info("POSu: " + newAngles.y.tostring())
-		float angle = 360.0 - newAngles.y
-		Logger.Info("POS: " + angle.tostring())
+		WaitFrame()
+		
+		vec =  position - GetLocalClientPlayer().GetOrigin()
+		newAngles = VectorToAngles( vec )
+		angle = 360.0 - newAngles.y
+		
+		imagePosition = GetImagePosition( angle )
+		
+		RuiSetFloat2(rui, "msgPos", < imagePosition, file.position, 0 > )
+		RuiSetFloat(rui, "msgAlpha", GetImageAlpha( imagePosition ) )
+		RuiSetFloat(rui, "msgFontSize", file.size * imageScaleModifier )
 	}
 }
 
-void function MaintainCustomCompassWaypoint( var rui )
-{
-	
-	//Could handle the destruction of custom waypoints by using a signal on LocalClientPlayer, that way we don't need a new global func
-}
 
-
-//THIS FUNCTION NEEDS A COMPLETE REWORK
 float function GetImagePosition(float angle)
 {
-	//float xAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1)
-	//Issue: currently the angle does not include the view angle, come up with a way to include it
-	//float a = angle - xAngle 
-	//fabs(xAngle - angle) //think that through
-	//The rest might be useless with this method
-	
 	float eyeAngle = fmod(((GetLocalViewPlayer().EyeAngles().y - 180) * (-1.0)) + 180.0, 360.0)
-	//float eyeAngle = (GetLocalViewPlayer().EyeAngles().y) * (-1)
 	float x = angle - eyeAngle
-	
-	float uDiff = min( fabs(x), fabs( fabs(x) - 360.0 ) ) //not sure about this
-	
-	//In one case the sign is wrong for some reason, inconsistently too
-	//add conditions for one angle greater than another or right/left of N
-	//float diff = x < 0 ? uDiff * (-1.0) : uDiff //this needs a rework for edge cases
-	
+	float uDiff = min( fabs(x), fabs( fabs(x) - 360.0 ) )
+
 	//Nasty-ass fuckin math
 	float diff = uDiff //temporary assignment in case of :clueless:
 	float eyeAngle2 = fmod( (eyeAngle + 180), 360.0 )
@@ -482,18 +501,12 @@ float function GetImagePosition(float angle)
 			diff = uDiff
 	}
 	
-	//135 degrees visible
-	//67.5 on each side
-	//our deviation is signed, so use 67.5 for division
-	//use file.width too, half of that to be exact
-	
-	return (diff / 67.5) * (file.compassWidth / 2) //hopefully works
+	return (diff / 67.5) * (file.compassWidth / 2)
 }
+
 
 float function GetImageAlpha(float position)
 {
-	//Pasted previous code, needs adjustments for images
-	//Actually might be fine
 	return file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
 }
 
@@ -502,6 +515,28 @@ float function fmod( float x, float y ) //the fuck
 {
 	return x - y * int(x / y)
 }
+
+
+/*
+void function kys(entity target) //debug thread aaaaa
+{
+	target.EndSignal( "OnDestroy" )
+	//target.EndSignal( "OnDeath" )
+	target.EndSignal( "DestroyTracker" )
+	
+	for(;;)
+	{
+		wait 3
+		Logger.Info("============")
+		Logger.Info("EYE: " + (fmod(((GetLocalViewPlayer().EyeAngles().y - 180) * (-1.0)) + 180.0, 360.0)).tostring())
+		//Eye func is wrong
+		vector newAngles = VectorToAngles(target.GetOrigin() - GetLocalClientPlayer().GetOrigin())
+		Logger.Info("POSu: " + newAngles.y.tostring())
+		float angle = 360.0 - newAngles.y
+		Logger.Info("POS: " + angle.tostring())
+	}
+}
+*/
 
 
 //Idea:
@@ -536,9 +571,5 @@ float function fmod( float x, float y ) //the fuck
 //Add an empty style, with no bars or numbers, for just custom markers
 //Add a variant of the number style without bars
 //Add colour to passed args in CreateCustomCompassTracker [DONE]
-//Add alpha modifier to passed args
-
-//Issues:
-//The GetImagePosition function does not include eye angles. Do the math. [FIXED] i think
-//Signals don't get through, might be because of whiletrue and not for;; [FIXED] the problem was the loop being before the OnThreadEnd
-//Weird mirroring thing near 0 degrees
+//Add alpha modifier to passed args (why?)
+//Add conditions to Maintain functions for handling enabled/disabled compass

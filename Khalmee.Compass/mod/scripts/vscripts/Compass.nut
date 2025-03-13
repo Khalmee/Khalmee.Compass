@@ -457,12 +457,30 @@ float function GetImagePosition(float angle)
 	//float eyeAngle = (GetLocalViewPlayer().EyeAngles().y) * (-1)
 	float x = angle - eyeAngle
 	
-	//x must be flipped for some reason? or one of the angles is off?
-	//fails near S
-	
 	float uDiff = min( fabs(x), fabs( fabs(x) - 360.0 ) ) //not sure about this
 	
-	float diff = x < 0 ? uDiff * (-1.0) : uDiff
+	//In one case the sign is wrong for some reason, inconsistently too
+	//add conditions for one angle greater than another or right/left of N
+	//float diff = x < 0 ? uDiff * (-1.0) : uDiff //this needs a rework for edge cases
+	
+	//Nasty-ass fuckin math
+	float diff = uDiff //temporary assignment in case of :clueless:
+	float eyeAngle2 = fmod( (eyeAngle + 180), 360.0 )
+	
+	if(eyeAngle > 180)
+	{
+		if( (angle >= 0 && angle <= eyeAngle2) || (angle > eyeAngle && angle < 360) )
+			diff = uDiff
+		else
+			diff = uDiff * (-1.0)
+	}
+	else
+	{
+		if( (angle >= 0 && angle <= eyeAngle) || (angle > eyeAngle2 && angle < 360) )
+			diff = uDiff * (-1.0)
+		else
+			diff = uDiff
+	}
 	
 	//135 degrees visible
 	//67.5 on each side
@@ -523,3 +541,4 @@ float function fmod( float x, float y ) //the fuck
 //Issues:
 //The GetImagePosition function does not include eye angles. Do the math. [FIXED] i think
 //Signals don't get through, might be because of whiletrue and not for;; [FIXED] the problem was the loop being before the OnThreadEnd
+//Weird mirroring thing near 0 degrees

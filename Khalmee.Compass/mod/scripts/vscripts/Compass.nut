@@ -380,6 +380,12 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 	bool isVisible = true
 	
 	
+	//DEBUG
+
+	thread kys(target)
+	//DEBUG END
+	
+	
 	OnThreadEnd(
 		function() : ( rui )
 		{
@@ -412,6 +418,24 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 	
 }
 
+void function kys(entity target) //debug thread aaaaa
+{
+	target.EndSignal( "OnDestroy" )
+	//target.EndSignal( "OnDeath" )
+	target.EndSignal( "DestroyTracker" )
+	
+	for(;;)
+	{
+		wait 3
+		Logger.Info("============")
+		Logger.Info("EYE: " + (fmod(((GetLocalViewPlayer().EyeAngles().y - 180) * (-1.0)) + 180.0, 360.0)).tostring())
+		//Eye func is wrong
+		vector newAngles = VectorToAngles(target.GetOrigin() - GetLocalClientPlayer().GetOrigin())
+		Logger.Info("POSu: " + newAngles.y.tostring())
+		float angle = 360.0 - newAngles.y
+		Logger.Info("POS: " + angle.tostring())
+	}
+}
 
 void function MaintainCustomCompassWaypoint( var rui )
 {
@@ -429,8 +453,12 @@ float function GetImagePosition(float angle)
 	//fabs(xAngle - angle) //think that through
 	//The rest might be useless with this method
 	
-	float eyeAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1)
+	float eyeAngle = fmod(((GetLocalViewPlayer().EyeAngles().y - 180) * (-1.0)) + 180.0, 360.0)
+	//float eyeAngle = (GetLocalViewPlayer().EyeAngles().y) * (-1)
 	float x = angle - eyeAngle
+	
+	//x must be flipped for some reason? or one of the angles is off?
+	//fails near S
 	
 	float uDiff = min( fabs(x), fabs( fabs(x) - 360.0 ) ) //not sure about this
 	
@@ -490,7 +518,8 @@ float function fmod( float x, float y ) //the fuck
 //Add an empty style, with no bars or numbers, for just custom markers
 //Add a variant of the number style without bars
 //Add colour to passed args in CreateCustomCompassTracker [DONE]
+//Add alpha modifier to passed args
 
 //Issues:
-//The GetImagePosition function does not include eye angles. Do the math. [NEARLY DONE] The thing is flipped, do 1 - x
+//The GetImagePosition function does not include eye angles. Do the math. [FIXED] i think
 //Signals don't get through, might be because of whiletrue and not for;; [FIXED] the problem was the loop being before the OnThreadEnd

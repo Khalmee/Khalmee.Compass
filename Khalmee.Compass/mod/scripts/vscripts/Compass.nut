@@ -607,4 +607,8 @@ Figure out the dependency constant to be used in mods that depend on compass so 
 
 Pass isVisible to GetImageAlpha, that way handling toggling will be easier
 
+Fix misalignment when message has 2 symbols (will require splitting the RUIs due to the existence of bars)
+could be done by remaking the create RUI func and using a 2 dimensional array for storing the bar RUIs ([3][9])
+would triple the cost of updating RUIs
+
 */

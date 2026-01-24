@@ -435,9 +435,6 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 }
 
 
-
-
-
 void function MaintainCustomCompassWaypoint( vector position, var rui, float imageScaleModifier )
 {
 	GetLocalClientPlayer().EndSignal( "DestroyWaypoints" )
@@ -571,5 +568,43 @@ void function kys(entity target) //debug thread aaaaa
 //Add an empty style, with no bars or numbers, for just custom markers
 //Add a variant of the number style without bars
 //Add colour to passed args in CreateCustomCompassTracker [DONE]
-//Add alpha modifier to passed args (why?)
 //Add conditions to Maintain functions for handling enabled/disabled compass
+
+/*
+
+New list of ideas
+Make a struct for configuring and manipulating the custom marker, for both trackers and waypoints
+entity target, string imagePath, float imageScaleModifier, vector colour, int compassRow
+
+global struct CustomCompassMarker
+{
+	var rui                              // contains the RUI in the returned struct
+	entity target                        // target entity, used with CreateCustomCompassTracker
+	vector position                      // target location, used with CreateCustomCompassWaypoint
+	string imagePath                     // 
+	float imageScaleModifier             // 
+	vector colour                        // 
+	int compassRow                       // 3 rows
+										 
+	float baseAlphaModifier              // 
+	bool fadeWithDistance                // 
+	float maxVisibleDistance             // in HU
+	bool fadeWithTime                    // 
+	float startTime                      // in seconds
+	float duration                       // in seconds
+}
+
+Pass the "create" function the struct, and make it return it, that way the modder has access to the RUI and its properties all the time
+This WILL cause a memory leak, but it will be dismissable if it's not being called in a loop
+(Structs returned by functions seem to not get cleaned up even if overwritten, cannot be manually deleted, perhaps the fix is to go out of scope, that is to leave the function where the create func was called)
+
+Make validity checks, don't remember now in what context, but they will be necessary
+if not null destroy if alive
+
+Increase the mod priority, set it to 1 or 0
+Make sure the mods that use it have priority of 2 or higher
+Figure out the dependency constant to be used in mods that depend on compass so that they do not cause errors when used without it
+
+Pass isVisible to GetImageAlpha, that way handling toggling will be easier
+
+*/

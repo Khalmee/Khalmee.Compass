@@ -31,7 +31,7 @@ struct
 	int style
 	int isEnabled
 	vector colour
-	var[2][9] barRUIs
+	var[9][2] barRUIs // this is weird, looks like the indexing is swapped for some reason
 	var centerRUI
 	bool isVisible = false
 }file
@@ -84,8 +84,10 @@ void function CompassThread()
 	
 	for(int k = 0; k < 2; ++k)
 	{
+		printt("k = " + k)
 		for(int i = 0; i < 9; ++i)
 		{
+			printt("i = " + i)
 			file.barRUIs[k][i] = CreateCompassRUI()
 		}
 	}
@@ -256,10 +258,15 @@ bool function ShouldShowCompass()
 
 void function HideCompass()
 {
-	foreach(rui in file.barRUIs){
-		RuiSetFloat(rui, "msgAlpha", 0)
+	for(int k = 0; k < 2; ++k)
+	{
+		for(int i = 0; i < 9; ++i)
+		{
+			RuiSetFloat(file.barRUIs[k][i], "msgAlpha", 0)
+		}
 	}
-	
+
+
 	RuiSetFloat(file.centerRUI, "msgAlpha", 0)
 }
 
@@ -348,19 +355,19 @@ string function GetBarValue(int index, float angle, float offset)
 
 	// Style dependent results
 	// In all cases these values should be applied to just one RUI row, as the other will only contain constant elements
-	len = str.len()
+	int len = str.len()
 
 	if(file.style == 0) // Bars
 	{
 		switch (len)
 		{
-			case: 1
+			case 1:
 				str = " \n \n" + str
 				break
-			case: 2
+			case 2:
 				str = "  \n  \n" + str
 				break
-			case: 3
+			case 3:
 				str = "   \n   \n" + str
 				break	
 		}
@@ -369,13 +376,13 @@ string function GetBarValue(int index, float angle, float offset)
 	{
 		switch (len)
 		{
-			case: 1
+			case 1:
 				str = " \n" + str + "\n "
 				break
-			case: 2
+			case 2:
 				str = "  \n" + str + "\n  "
 				break
-			case: 3
+			case 3:
 				str = "   \n" + str + "\n   "
 				break	
 		}

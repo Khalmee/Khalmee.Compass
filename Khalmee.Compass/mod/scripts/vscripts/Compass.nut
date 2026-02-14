@@ -426,7 +426,8 @@ void function MaintainCustomCompassTracker( CustomCompassMarker data ) //add mor
 	OnThreadEnd(
 		function() : ( data )
 		{
-			Logger.Info("Thread ended!")
+			//Logger.Info("Thread ended!")
+			printt("Thread ended!")
 			if(data.rui != null)
 			{
 				RuiDestroyIfAlive(data.rui)
@@ -449,7 +450,7 @@ void function MaintainCustomCompassTracker( CustomCompassMarker data ) //add mor
 		imagePosition = GetImagePosition( angle )
 		
 		RuiSetFloat2(data.rui, "msgPos", < imagePosition, file.position, 0 > )
-		RuiSetFloat(data.rui, "msgAlpha", GetImageAlpha( imagePosition ) )
+		RuiSetFloat(data.rui, "msgAlpha", GetImageAlpha( imagePosition, data ) )
 		RuiSetFloat(data.rui, "msgFontSize", file.size * data.imageScaleModifier )
 	}
 	
@@ -469,10 +470,11 @@ void function MaintainCustomCompassWaypoint( CustomCompassMarker data )
 	OnThreadEnd(
 		function() : ( data )
 		{
-			Logger.Info("Thread ended!")
+			//Logger.Info("Thread ended!")
+			printt("Thread ended!")
 			if(data.rui != null)
 			{
-				RuiDestroyIfAlive(rui)
+				RuiDestroyIfAlive(data.rui)
 			}
 		}
 	)
@@ -481,15 +483,15 @@ void function MaintainCustomCompassWaypoint( CustomCompassMarker data )
 	{
 		WaitFrame()
 		
-		vec =  position - GetLocalClientPlayer().GetOrigin()
+		vec =  data.position - GetLocalClientPlayer().GetOrigin()
 		newAngles = VectorToAngles( vec )
 		angle = 360.0 - newAngles.y
 		
 		imagePosition = GetImagePosition( angle )
 		
-		RuiSetFloat2(rui, "msgPos", < imagePosition, file.position, 0 > )
-		RuiSetFloat(rui, "msgAlpha", GetImageAlpha( imagePosition ) )
-		RuiSetFloat(rui, "msgFontSize", file.size * imageScaleModifier )
+		RuiSetFloat2(data.rui, "msgPos", < imagePosition, file.position, 0 > )
+		RuiSetFloat(data.rui, "msgAlpha", GetImageAlpha( imagePosition, data ) )
+		RuiSetFloat(data.rui, "msgFontSize", file.size * data.imageScaleModifier )
 	}
 }
 
@@ -536,7 +538,7 @@ float function GetImageAlpha(float position, CustomCompassMarker data)
 	{
 		float hDist // distance in hammer units
 		if(data.useHorizontalDistance)
-			hdist = HorizontalDistance( data.target.GetOrigin(), GetLocalClientPlayer().GetOrigin() )
+			hDist = HorizontalDistance( data.target.GetOrigin(), GetLocalClientPlayer().GetOrigin() )
 		else 
 			hDist = Distance( data.target.GetOrigin(), GetLocalClientPlayer().GetOrigin() ) 
 

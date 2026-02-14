@@ -226,13 +226,18 @@ void function UpdateCompassRUIs()
 		//	Center RUI
 		int angleNumber = (int(xAngle) + 180)%360 //could be optimized out, don't wanna bother rn so TODO
 		
+		//RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n" + (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring())) // TODO
+		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n   ")
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		
-		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n" + (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring())) // TODO
-		
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
 		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
+		// This is not the correct way to do this but I have no better idea rn
+		// Fixing center RUI angle value offset
+		RuiSetString(file.barRUIs[1][4], "msgText", "\n\n" + angleNumber.tostring()) // stealing a bar RUI for a moment
+		RuiSetFloat2(file.barRUIs[1][4], "msgPos", <0, file.position, 0>)
+		RuiSetFloat(file.barRUIs[1][4], "msgAlpha", file.baseAlpha)
+
 	}
 	
 }
@@ -663,6 +668,12 @@ void function kys(entity target) //debug thread aaaaa
 }
 */
 
+
+// TODO
+// BUG FOUND
+// at exactly 0 degrees the bars are shifted (numbers style)
+// N is 15 degrees to the left
+// difficult to replicate, disappeared after switching up a bunch of stuff in mod settings
 
 //old TODO:
 //Add an empty style, with no bars or numbers, for just custom markers

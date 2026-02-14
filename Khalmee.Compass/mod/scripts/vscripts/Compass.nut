@@ -377,28 +377,28 @@ void function CreateCustomCompassTracker( CustomCompassMarker data )
 }
 
 
-void function CreateCustomCompassWaypoint( vector position, string imagePath, float imageScaleModifier, vector colour, int compassRow )
+void function CreateCustomCompassWaypoint( CustomCompassMarker data )
 {
-	var rui = CreateCompassRUI()
+	data.rui = CreateCompassRUI()
 	string ruiString = ""
 	
-	switch( compassRow )
+	switch( data.compassRow )
 	{
 		case 1:
-			ruiString = "%" + imagePath + "%\n\n"
+			ruiString = "%" + data.imagePath + "%\n\n"
 			break
 		case 2:
-			ruiString = "\n%" + imagePath + "%\n"
+			ruiString = "\n%" + data.imagePath + "%\n"
 			break
 		default:
-			ruiString = "\n\n%" + imagePath + "%"
+			ruiString = "\n\n%" + data.imagePath + "%"
 			break
 	}
 	
-	RuiSetString(rui, "msgText", ruiString )
-	RuiSetFloat3(rui, "msgColor", colour )
+	RuiSetString(data.rui, "msgText", ruiString )
+	RuiSetFloat3(data.rui, "msgColor", data.colour )
 	
-	thread MaintainCustomCompassWaypoint( position, rui, imageScaleModifier )
+	thread MaintainCustomCompassWaypoint( data )
 }
 //Remember to add these newly created ruis to an array, which we will use to hide them with the HideCompass function, or use ShouldShowCompass
 //Might turn out to not be necessary
@@ -415,7 +415,7 @@ void function MaintainCustomCompassTracker( CustomCompassMarker data ) //add mor
 	vector newAngles
 	float angle
 	float imagePosition
-	bool isVisible = true
+	//bool isVisible = true
 	
 	
 	//DEBUG
@@ -424,7 +424,7 @@ void function MaintainCustomCompassTracker( CustomCompassMarker data ) //add mor
 	
 	
 	OnThreadEnd(
-		function() : ( rui )
+		function() : ( data )
 		{
 			Logger.Info("Thread ended!")
 			if(data.rui != null)
@@ -456,7 +456,7 @@ void function MaintainCustomCompassTracker( CustomCompassMarker data ) //add mor
 }
 
 
-void function MaintainCustomCompassWaypoint( vector position, var rui, float imageScaleModifier )
+void function MaintainCustomCompassWaypoint( CustomCompassMarker data )
 {
 	GetLocalClientPlayer().EndSignal( "DestroyWaypoints" )
 	
@@ -464,13 +464,13 @@ void function MaintainCustomCompassWaypoint( vector position, var rui, float ima
 	vector newAngles
 	float angle
 	float imagePosition
-	bool isVisible = true
+	//bool isVisible = true
 	
 	OnThreadEnd(
-		function() : ( rui )
+		function() : ( data )
 		{
 			Logger.Info("Thread ended!")
-			if(rui != null)
+			if(data.rui != null)
 			{
 				RuiDestroyIfAlive(rui)
 			}
@@ -525,6 +525,9 @@ float function GetImagePosition(float angle)
 
 float function GetImageAlpha(float position, CustomCompassMarker data)
 {
+	if(!file.isVisible)
+		return 0.0
+
 	float alpha = file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
 
 	alpha *= data.baseAlphaModifier
@@ -663,6 +666,7 @@ Perhaps that is not necessary since the struct is passed as a reference, so the 
 
 Make validity checks, don't remember now in what context, but they will be necessary
 if not null destroy if alive
+VISIBILITY CHECK which uses the file.isVisible var
 
 Increase the mod priority, set it to 1 or 0
 Make sure the mods that use it have priority of 2 or higher

@@ -3,6 +3,25 @@ global function CompassInit
 global function CreateCustomCompassTracker
 global function CreateCustomCompassWaypoint
 
+global struct CustomCompassMarker
+{
+	var rui                              // contains the RUI in the returned struct
+	entity target                        // target entity, used with CreateCustomCompassTracker
+	vector position                      // target location, used with CreateCustomCompassWaypoint
+	string imagePath                     // example: "$rui/menu/boosts/boost_icon_holopilot"
+	float imageScaleModifier             // 
+	vector colour                        // 
+	int compassRow                       // 3 rows, indexed from 1 to 3
+										 
+	float baseAlphaModifier              // for no change use 1.0
+	bool fadeWithDistance                // 
+	bool useHorizontalDistance			 // distance calculations will only include the horizontal plane (x, y)
+	float maxVisibleDistance             // in HU
+	bool fadeWithTime                    // 
+	float startTime                      // in seconds
+	float duration                       // in seconds
+}
+
 struct
 {
 	float size
@@ -331,28 +350,30 @@ vector function GetConVarFloat3(string convar)
 //==================================================================================================================
 
 //Functions for creating custom compass markers
-void function CreateCustomCompassTracker( entity target, string imagePath, float imageScaleModifier, vector colour, int compassRow )
+void function CreateCustomCompassTracker( CustomCompassMarker data )
 {
-	var rui = CreateCompassRUI()
+	data.rui = CreateCompassRUI()
 	string ruiString = ""
 	
-	switch( compassRow )
+	// Validity checks for values here? Or do we rely on the modder being competent?
+
+	switch( data.compassRow )
 	{
 		case 1:
-			ruiString = "%" + imagePath + "%\n\n"
+			ruiString = "%" + data.imagePath + "%\n\n"
 			break
 		case 2:
-			ruiString = "\n%" + imagePath + "%\n"
+			ruiString = "\n%" + data.imagePath + "%\n"
 			break
 		default:
-			ruiString = "\n\n%" + imagePath + "%"
+			ruiString = "\n\n%" + data.imagePath + "%"
 			break
 	}
 	
-	RuiSetString(rui, "msgText", ruiString )
-	RuiSetFloat3(rui, "msgColor", colour )
+	RuiSetString(data.rui, "msgText", ruiString )
+	RuiSetFloat3(data.rui, "msgColor", data.colour )
 	
-	thread MaintainCustomCompassTracker( target, rui, imageScaleModifier )
+	thread MaintainCustomCompassTracker( data )
 }
 
 
@@ -384,11 +405,11 @@ void function CreateCustomCompassWaypoint( vector position, string imagePath, fl
 
 
 //Funcs for maintaining the RUIs, they run as threads and update/delete them
-void function MaintainCustomCompassTracker( entity target, var rui, float imageScaleModifier ) //add more args
+void function MaintainCustomCompassTracker( CustomCompassMarker data ) //add more args
 {
-	target.EndSignal( "OnDestroy" )
-	//target.EndSignal( "OnDeath" )
-	target.EndSignal( "DestroyTracker" )
+	data.target.EndSignal( "OnDestroy" )
+	//data.target.EndSignal( "OnDeath" )
+	data.target.EndSignal( "DestroyTracker" )
 	
 	vector vec
 	vector newAngles
@@ -406,9 +427,9 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 		function() : ( rui )
 		{
 			Logger.Info("Thread ended!")
-			if(rui != null)
+			if(data.rui != null)
 			{
-				RuiDestroyIfAlive(rui)
+				RuiDestroyIfAlive(data.rui)
 			}
 		}
 	)
@@ -417,7 +438,7 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 	{
 		WaitFrame()
 		
-		vec =  target.GetOrigin() - GetLocalClientPlayer().GetOrigin()
+		vec =  data.target.GetOrigin() - GetLocalClientPlayer().GetOrigin()
 		newAngles = VectorToAngles( vec )
 		//Logger.Info((360.0 - newAngles.y).tostring()) //Y is our argument
 		//East and west are swapped
@@ -427,9 +448,9 @@ void function MaintainCustomCompassTracker( entity target, var rui, float imageS
 		
 		imagePosition = GetImagePosition( angle )
 		
-		RuiSetFloat2(rui, "msgPos", < imagePosition, file.position, 0 > )
-		RuiSetFloat(rui, "msgAlpha", GetImageAlpha( imagePosition ) )
-		RuiSetFloat(rui, "msgFontSize", file.size * imageScaleModifier )
+		RuiSetFloat2(data.rui, "msgPos", < imagePosition, file.position, 0 > )
+		RuiSetFloat(data.rui, "msgAlpha", GetImageAlpha( imagePosition ) )
+		RuiSetFloat(data.rui, "msgFontSize", file.size * data.imageScaleModifier )
 	}
 	
 }
@@ -502,9 +523,46 @@ float function GetImagePosition(float angle)
 }
 
 
-float function GetImageAlpha(float position)
+float function GetImageAlpha(float position, CustomCompassMarker data)
 {
-	return file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
+	float alpha = file.baseAlpha * ((file.compassWidth/2 - fabs(position)) / (file.compassWidth / 2))
+
+	alpha *= data.baseAlphaModifier
+
+	if(data.fadeWithDistance)
+	{
+		float hDist // distance in hammer units
+		if(data.useHorizontalDistance)
+			hdist = HorizontalDistance( data.target.GetOrigin(), GetLocalClientPlayer().GetOrigin() )
+		else 
+			hDist = Distance( data.target.GetOrigin(), GetLocalClientPlayer().GetOrigin() ) 
+
+		float diff = data.maxVisibleDistance - hDist
+		if(diff > 0)
+		{
+			alpha *= diff/data.maxVisibleDistance // we trust it was not set to 0 lmao
+		}
+		else
+		{
+			alpha *= 0
+		}
+	}
+
+	if(data.fadeWithTime)
+	{
+		float currTime = Time()
+
+		if(currTime - data.startTime < data.duration)
+		{
+			alpha *= ((data.duration - (currTime - data.startTime)) / data.duration)
+		}
+		else
+		{
+			alpha *= 0
+		}
+	}
+
+	return alpha
 }
 
 
@@ -513,6 +571,10 @@ float function fmod( float x, float y ) //the fuck
 	return x - y * int(x / y)
 }
 
+float function HorizontalDistance(vector v1, vector v2)
+{
+	return sqrt((v1.x - v2.x) * (v1.x - v2.x)) + sqrt((v1.y - v2.y) * (v1.y - v2.y))
+}
 
 /*
 void function kys(entity target) //debug thread aaaaa
@@ -581,7 +643,7 @@ global struct CustomCompassMarker
 	var rui                              // contains the RUI in the returned struct
 	entity target                        // target entity, used with CreateCustomCompassTracker
 	vector position                      // target location, used with CreateCustomCompassWaypoint
-	string imagePath                     // 
+	string imagePath                     // example: "$rui/menu/boosts/boost_icon_holopilot"
 	float imageScaleModifier             // 
 	vector colour                        // 
 	int compassRow                       // 3 rows
@@ -597,6 +659,7 @@ global struct CustomCompassMarker
 Pass the "create" function the struct, and make it return it, that way the modder has access to the RUI and its properties all the time
 This WILL cause a memory leak, but it will be dismissable if it's not being called in a loop
 (Structs returned by functions seem to not get cleaned up even if overwritten, cannot be manually deleted, perhaps the fix is to go out of scope, that is to leave the function where the create func was called)
+Perhaps that is not necessary since the struct is passed as a reference, so the func calling create will already have it, needs testing
 
 Make validity checks, don't remember now in what context, but they will be necessary
 if not null destroy if alive

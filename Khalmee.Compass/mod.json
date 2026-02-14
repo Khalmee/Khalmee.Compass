@@ -1,7 +1,7 @@
 {
 	"Name": "Khalmee.Compass",
 	"Description": "Customizable compass",
-	"LoadPriority": 2,
+	"LoadPriority": 1,
 	"RequiredOnClient": false,
 	"Version": "1.0.0",
 	

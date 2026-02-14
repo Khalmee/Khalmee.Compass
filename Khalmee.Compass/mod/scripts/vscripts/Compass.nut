@@ -5,21 +5,21 @@ global function CreateCustomCompassWaypoint
 
 global struct CustomCompassMarker
 {
-	var rui                              // contains the RUI in the returned struct
-	entity target                        // target entity, used with CreateCustomCompassTracker
-	vector position                      // target location, used with CreateCustomCompassWaypoint
-	string imagePath                     // example: "$rui/menu/boosts/boost_icon_holopilot"
-	float imageScaleModifier             // 
-	vector colour                        // 
-	int compassRow                       // 3 rows, indexed from 1 to 3
+	var rui = null                       // contains the RUI in the returned struct
+	entity target = null                 // target entity, used with CreateCustomCompassTracker
+	vector position = Vector(0,0,0)      // target location, used with CreateCustomCompassWaypoint
+	string imagePath = ""                // example: "$rui/menu/boosts/boost_icon_holopilot"
+	float imageScaleModifier = 1.0       // 
+	vector colour = Vector(1.0, 1.0, 1.0)// 
+	int compassRow = 2                   // 3 rows, indexed from 1 to 3
 										 
-	float baseAlphaModifier              // for no change use 1.0
-	bool fadeWithDistance                // 
-	bool useHorizontalDistance			 // distance calculations will only include the horizontal plane (x, y)
-	float maxVisibleDistance             // in HU
-	bool fadeWithTime                    // 
-	float startTime                      // in seconds
-	float duration                       // in seconds
+	float baseAlphaModifier = 1.0        // for no change use 1.0
+	bool fadeWithDistance = false        // 
+	bool useHorizontalDistance = true	 // distance calculations will only include the horizontal plane (x, y)
+	float maxVisibleDistance = 10000     // in HU
+	bool fadeWithTime = false            // 
+	float startTime = 0.0                // in seconds
+	float duration = 10.0                // in seconds
 }
 
 struct
@@ -31,7 +31,7 @@ struct
 	int style
 	int isEnabled
 	vector colour
-	var[9] barRUIs
+	var[2][9] barRUIs
 	var centerRUI
 	bool isVisible = false
 }file
@@ -82,9 +82,12 @@ void function CompassThread()
 {
 	UpdateSettings()
 	
-	for(int i = 0; i < 9; ++i)
+	for(int k = 0; k < 2; ++k)
 	{
-		file.barRUIs[i] = CreateCompassRUI()
+		for(int i = 0; i < 9; ++i)
+		{
+			file.barRUIs[k][i] = CreateCompassRUI()
+		}
 	}
 	
 	file.centerRUI = CreateCenterRUI()
@@ -144,22 +147,27 @@ void function UpdateCompassRUIs()
 	float xAngle = (GetLocalViewPlayer().EyeAngles().y - 180) * (-1) //View angle in degrees (range -180 to 180 by default, correcting)
 	float offset = GetBarOffset(xAngle)
 	float barPosition
-	
+	float alpha = 1.0
 	
 	if(file.style == 0) //Style: Bars
 	{
 		for(int i = 0; i<9; ++i)
 		{
-			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
-			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
-			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "   \n | \n" + GetBarValue(i, xAngle, offset))
-			
-			//Settings based stuff
-			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
-			RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+			alpha = GetBarAlpha(barPosition)
+			RuiSetString(file.barRUIs[0][i], "msgText", GetBarValue(i, xAngle, offset))
+			RuiSetString(file.barRUIs[1][i], "msgText", " \n|\n ")
+
+			for(int k = 0; k<2; ++k)
+			{
+				RuiSetFloat2(file.barRUIs[k][i], "msgPos", <barPosition, file.position, 0>)
+				RuiSetFloat(file.barRUIs[k][i], "msgAlpha", alpha)
+
+				RuiSetFloat(file.barRUIs[k][i], "msgFontSize", file.size)
+				RuiSetFloat3(file.barRUIs[k][i], "msgColor", file.colour)
+			}
 		}
+		
 		
 		//	Center RUI
 		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n   ")
@@ -172,20 +180,23 @@ void function UpdateCompassRUIs()
 	{
 		for(int i = 0; i<9; ++i)
 		{
-			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
-			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
-			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "   \n" + GetBarValue(i, xAngle, offset) + "\n   ")
-			
-			//Settings based stuff
-			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
-			RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+			alpha = GetBarAlpha(barPosition)
+			RuiSetString(file.barRUIs[0][i], "msgText", GetBarValue(i, xAngle, offset))
+			RuiSetString(file.barRUIs[1][i], "msgText", "")
+
+			for(int k = 0; k<2; ++k)
+			{
+				RuiSetFloat2(file.barRUIs[k][i], "msgPos", <barPosition, file.position, 0>)
+				RuiSetFloat(file.barRUIs[k][i], "msgAlpha", alpha)
+
+				RuiSetFloat(file.barRUIs[k][i], "msgFontSize", file.size)
+				RuiSetFloat3(file.barRUIs[k][i], "msgColor", file.colour)
+			}
 		}
 		
 		//	Center RUI
 		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n   ")
-		//RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n%$r2_ui/menus/loadout_icons/primary_weapon/primary_softball%") //experimental, works
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
@@ -195,22 +206,28 @@ void function UpdateCompassRUIs()
 	{
 		for(int i = 0; i<9; ++i)
 		{
-			//Dynamic stuff
 			barPosition = GetBarPosition(i, offset)
-			RuiSetFloat2(file.barRUIs[i], "msgPos", <barPosition, file.position, 0>)
-			RuiSetFloat(file.barRUIs[i], "msgAlpha", GetBarAlpha(barPosition))
-			RuiSetString(file.barRUIs[i], "msgText", "   \n" + GetBarValue(i, xAngle, offset) + "\n   ")
-			
-			//Settings based stuff
-			RuiSetFloat(file.barRUIs[i], "msgFontSize", file.size)
-			RuiSetFloat3(file.barRUIs[i], "msgColor", file.colour)
+			alpha = GetBarAlpha(barPosition)
+			RuiSetString(file.barRUIs[0][i], "msgText", GetBarValue(i, xAngle, offset))
+			RuiSetString(file.barRUIs[1][i], "msgText", "")
+
+			for(int k = 0; k<2; ++k)
+			{
+				RuiSetFloat2(file.barRUIs[k][i], "msgPos", <barPosition, file.position, 0>)
+				RuiSetFloat(file.barRUIs[k][i], "msgAlpha", alpha)
+
+				RuiSetFloat(file.barRUIs[k][i], "msgFontSize", file.size)
+				RuiSetFloat3(file.barRUIs[k][i], "msgColor", file.colour)
+			}
 		}
 		
 		//	Center RUI
 		int angleNumber = (int(xAngle) + 180)%360 //could be optimized out, don't wanna bother rn so TODO
 		
 		RuiSetFloat(file.centerRUI, "msgFontSize", file.size)
-		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n" + (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring()))
+		
+		RuiSetString(file.centerRUI, "msgText", "\\|/\n   \n" + (angleNumber.tostring().len() == 1 ? " " + angleNumber.tostring() + " " : angleNumber.tostring())) // TODO
+		
 		RuiSetFloat3(file.centerRUI, "msgColor", file.colour)
 		RuiSetFloat(file.centerRUI, "msgAlpha", file.baseAlpha)
 		RuiSetFloat2(file.centerRUI, "msgPos", <0, file.position, 0>)
@@ -298,39 +315,76 @@ string function GetBarValue(int index, float angle, float offset)
 	switch (result)
 	{
 		case 0:
-			str = " N "
+			str = "N"
 			break
 		case 45:
-			str = "NE "
+			str = "NE"
 			break
 		case 90:
-			str = " E "
+			str = "E"
 			break
 		case 135:
-			str = "SE "
+			str = "SE"
 			break
 		case 180:
-			str = " S "
+			str = "S"
 			break
 		case 225:
-			str = "SW "
+			str = "SW"
 			break
 		case 270:
-			str = " W "
+			str = "W"
 			break
 		case 315:
-			str = "NW "
+			str = "NW"
 			break
 		default:
 			if(file.style == 2)
-				str = " | "
+				str = "|"
 			else
 				str = result.tostring()
-				if(str.len() < 3)
-					str = str.len() == 1 ? " " + str + " " : str + " "
 			break
 	}
-	
+
+	// Style dependent results
+	// In all cases these values should be applied to just one RUI row, as the other will only contain constant elements
+	len = str.len()
+
+	if(file.style == 0) // Bars
+	{
+		switch (len)
+		{
+			case: 1
+				str = " \n \n" + str
+				break
+			case: 2
+				str = "  \n  \n" + str
+				break
+			case: 3
+				str = "   \n   \n" + str
+				break	
+		}
+	}
+	else if(file.style == 1 || file.style == 2) // Minimalistic || Number (both use row 2, implementation is the same)
+	{
+		switch (len)
+		{
+			case: 1
+				str = " \n" + str + "\n "
+				break
+			case: 2
+				str = "  \n" + str + "\n  "
+				break
+			case: 3
+				str = "   \n" + str + "\n   "
+				break	
+		}
+	}
+	else // Empty
+	{
+
+	}
+
 	return str
 }
 
@@ -603,6 +657,39 @@ void function kys(entity target) //debug thread aaaaa
 */
 
 
+//old TODO:
+//Add an empty style, with no bars or numbers, for just custom markers
+//Add a variant of the number style without bars
+
+/*
+
+New list of ideas/thoughts
+
+Pass the "create" function the struct, and make it return it, that way the modder has access to the RUI and its properties all the time
+This WILL cause a memory leak, but it will be dismissable if it's not being called in a loop
+(Structs returned by functions seem to not get cleaned up even if overwritten, cannot be manually deleted, perhaps the fix is to go out of scope, that is to leave the function where the create func was called)
+Perhaps that is not necessary since the struct is passed as a reference, so the func calling create will already have it, needs testing
+[implemented]
+
+Make validity checks, don't remember now in what context, but they will be necessary [stuff should work unless the modder is incompetent]
+if not null destroy if alive
+
+Increase the mod priority, set it to 1 or 0 [set to 1, will see if it needs to be altered later]
+Make sure the mods that use it have priority of 2 or higher
+
+Fix misalignment when message has 2 symbols (will require splitting the RUIs due to the existence of bars)
+could be done by remaking the create RUI func and using a 2 dimensional array for storing the bar RUIs ([3][9])
+would triple the cost of updating RUIs
+
+Since the bars/letters never use the 1st row, 2 rows of bar RUIs would be enough
+doubles the cost, requires reworks of funcs, but it's not THAT bad
+
+*/
+
+
+
+// Irrelevant ramblings, preserving for personal reference just in case
+
 //Idea:
 //Create a function that creates an icon on the compass for any entity, using an image the path to which is passed as an arg
 //it could return the RUI var, but that might cause issues, we'll see
@@ -631,53 +718,3 @@ void function kys(entity target) //debug thread aaaaa
 //NSSendAnnouncementMessageToPlayer(player, "%%$r2_ui/menus/loadout_icons/primary_weapon/primary_softball%%", "deez nuts", <255, 0, 0>, 1, 0);
 
 
-//TODO:
-//Add an empty style, with no bars or numbers, for just custom markers
-//Add a variant of the number style without bars
-//Add colour to passed args in CreateCustomCompassTracker [DONE]
-//Add conditions to Maintain functions for handling enabled/disabled compass
-
-/*
-
-New list of ideas
-Make a struct for configuring and manipulating the custom marker, for both trackers and waypoints
-entity target, string imagePath, float imageScaleModifier, vector colour, int compassRow
-
-global struct CustomCompassMarker
-{
-	var rui                              // contains the RUI in the returned struct
-	entity target                        // target entity, used with CreateCustomCompassTracker
-	vector position                      // target location, used with CreateCustomCompassWaypoint
-	string imagePath                     // example: "$rui/menu/boosts/boost_icon_holopilot"
-	float imageScaleModifier             // 
-	vector colour                        // 
-	int compassRow                       // 3 rows
-										 
-	float baseAlphaModifier              // 
-	bool fadeWithDistance                // 
-	float maxVisibleDistance             // in HU
-	bool fadeWithTime                    // 
-	float startTime                      // in seconds
-	float duration                       // in seconds
-}
-
-Pass the "create" function the struct, and make it return it, that way the modder has access to the RUI and its properties all the time
-This WILL cause a memory leak, but it will be dismissable if it's not being called in a loop
-(Structs returned by functions seem to not get cleaned up even if overwritten, cannot be manually deleted, perhaps the fix is to go out of scope, that is to leave the function where the create func was called)
-Perhaps that is not necessary since the struct is passed as a reference, so the func calling create will already have it, needs testing
-
-Make validity checks, don't remember now in what context, but they will be necessary
-if not null destroy if alive
-VISIBILITY CHECK which uses the file.isVisible var
-
-Increase the mod priority, set it to 1 or 0
-Make sure the mods that use it have priority of 2 or higher
-Figure out the dependency constant to be used in mods that depend on compass so that they do not cause errors when used without it
-
-Pass isVisible to GetImageAlpha, that way handling toggling will be easier
-
-Fix misalignment when message has 2 symbols (will require splitting the RUIs due to the existence of bars)
-could be done by remaking the create RUI func and using a 2 dimensional array for storing the bar RUIs ([3][9])
-would triple the cost of updating RUIs
-
-*/
